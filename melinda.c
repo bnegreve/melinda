@@ -17,5 +17,7 @@ typedef struct {
 }tuplespace_t;
 
 void tuplespace_init(tuplespace_t *ts, unsigned int nb_internals){
-  for(int i = 0; i < nb_internals; i++)
+  for(int i = 0; i < nb_internals; i++){
+    internal_init(); 
+  }
 }
