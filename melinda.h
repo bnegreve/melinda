@@ -12,10 +12,24 @@
 #define   	MELINDA_H_
 
 typedef struct {} tuple_t; 
+typedef struct {} tuplespace_t;
 
+/** 
+ * \brief Intialize the tuplespace \ts.
+ *
+ * \warning Must be called before calling any other function in this file.  
+ *
+ * @param ts 
+ * @param nb_internals 
+ */
+void tuplespace_init(tuplespace_t *ts, unsigned int nb_internals); 
 
-void tuplespace_init(unsigned int nb_internals); 
-
+/** 
+ * \brief Releases memory used by the tuplespace \ts.
+ * 
+ * @param ts 
+ */
+void tuplespace_destroy(tuplespace_t *ts);
 
 /** 
  * \brief Put the tuples contained in the \tuples array inside
