@@ -12,6 +12,8 @@
 #define   	INTERNAL_H_
 
 #include <pthread.h>
+/**\file internal.h*/
+
 //#define INTERNAL_USESPINLOCKS 
 #define INTERNAL_INITIALMAXTUPLE 1024
 #define INTERNAL_EXPANDFACTOR 2
@@ -31,9 +33,9 @@ typedef struct {
   pthread_cond_t cond; 
 } internal_t; 
 
-void internal_init(internal_t *i, size_t tuple_size);
-void internal_destroy(internal_t *i); 
-void internal_put(internal_t *i, opaque_tuple_t *tuples, unsigned int nb_tuples);
+void m_internal_init(internal_t *i, size_t tuple_size);
+void m_internal_destroy(internal_t *i); 
+void m_internal_put(internal_t *i, opaque_tuple_t *tuples, unsigned int nb_tuples);
 
 /** 
  * \brief retrieve one or more tuples from the internal. 
@@ -46,9 +48,9 @@ void internal_put(internal_t *i, opaque_tuple_t *tuples, unsigned int nb_tuples)
  * 
  * @return INTERNAL_CLOSED
  */
-int internal_get(internal_t *i, unsigned int *nb_tuples, opaque_tuple_t *tuples);
+int m_internal_get(internal_t *i, unsigned int *nb_tuples, opaque_tuple_t *tuples);
 
-void internal_close(internal_t *i); 
+void m_internal_close(internal_t *i); 
 
 
 #endif 	    /* !INTERNAL_H_ */

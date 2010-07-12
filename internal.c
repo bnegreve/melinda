@@ -32,7 +32,7 @@ static inline unsigned int dist_to_data_end(internal_t *i);
 
 
 
-void internal_init(internal_t *i, size_t tuple_size){
+void m_internal_init(internal_t *i, size_t tuple_size){
 
   i->tuple_size = tuple_size; 
   i->data_size = INTERNAL_INITIALMAXTUPLE * tuple_size; 
@@ -45,20 +45,21 @@ void internal_init(internal_t *i, size_t tuple_size){
   pthread_cond_init(&i->cond, NULL); 
 }
 
-void internal_destroy(internal_t *i){
+void m_internal_destroy(internal_t *i){
   assert(i->size == 0); 
   free(i->data); 
   pthread_mutex_destroy(&i->mutex); 
   pthread_cond_destroy(&i->cond); 
 }
 
-void internal_put(internal_t *i, opaque_tuple_t *tuples, unsigned int nb_tuples){
+void m_internal_put(internal_t *i, opaque_tuple_t *tuples, unsigned int nb_tuples){
 
   pthread_mutex_lock(&i->mutex); 
   /* while(i->data_size < nb_tuples * i->tuple_size){ */
   /*   expand(i);  */
   /* } */
 
+  /* check wether there is enough room */
   assert(i->data_size >= i->size+nb_tuples*i->tuple_size); 
 
   /* Check if there is enough contigus room for all the given tuples*/
@@ -78,7 +79,7 @@ void internal_put(internal_t *i, opaque_tuple_t *tuples, unsigned int nb_tuples)
 
 }
 
-int internal_get(internal_t *i, unsigned int *nb_tuples, opaque_tuple_t *tuples){
+int m_internal_get(internal_t *i, unsigned int *nb_tuples, opaque_tuple_t *tuples){
 
   pthread_mutex_lock(&i->mutex); 
   if(wait_tuple(i) == INTERNAL_CLOSED){
@@ -104,7 +105,7 @@ int internal_get(internal_t *i, unsigned int *nb_tuples, opaque_tuple_t *tuples)
   return !INTERNAL_CLOSED;   
 }
 
-void internal_close(internal_t *i){
+void m_internal_close(internal_t *i){
   pthread_mutex_lock(&i->mutex); 
   i->closed = INTERNAL_CLOSED; 
   pthread_cond_broadcast(&i->cond); 

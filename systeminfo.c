@@ -14,7 +14,7 @@
 
 typedef struct{
   pthread_mutex_t mutex; 
-  pthread_t tids[SYSTEMINFO_MAX_THREADS]; 
+  pthread_t tids[SYSTEMINFO_MAXTHREADS]; 
   int next_tid; 
 }thread_ids_t;
 

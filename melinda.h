@@ -10,20 +10,17 @@
 
 #ifndef   	MELINDA_H_
 #define   	MELINDA_H_
+/**\file melinda.h*/
 
 typedef tuple_t;
 
-/* /\* User defined function. Given a tuple this function may return 1 if */
-/*    the tuple is to be kept or 0 if the tuple is to be discarded. *\/ */
-/* int input_filter(tuple_t *tuple);  */
-
-/* User defined function. Given a tuple this function returns the
+/** User defined function. Given a tuple this function returns the
    internal in which the tuple is to be stored*/
-int distribute(tuple_t *tuple); 
+int m_distribute(tuple_t *tuple); 
 
-/* User defined function. Return \nb_tuples tuples that should be
+/** User defined function. Return \nb_tuples tuples that should be
    processed by the calling thread */
-tuple_t *retrieve(unsigned int *nb_tuples);
+tuple_t *m_retrieve(unsigned int *nb_tuples);
 
 
 
