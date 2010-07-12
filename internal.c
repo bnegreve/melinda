@@ -40,7 +40,7 @@ void m_internal_init(internal_t *i, size_t tuple_size){
   i->size = 0; 
   i->begin = 0; 
   i->closed = !INTERNAL_CLOSED; 
-  
+  i->in_usage = 1; 
   pthread_mutex_init(&i->mutex, NULL); 
   pthread_cond_init(&i->cond, NULL); 
 }

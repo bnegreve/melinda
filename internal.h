@@ -14,13 +14,13 @@
 #include <pthread.h>
 /**\file internal.h*/
 
+#include "defines.h" 
+
 //#define INTERNAL_USESPINLOCKS 
 #define INTERNAL_INITIALMAXTUPLE 1024
 #define INTERNAL_EXPANDFACTOR 2
 
 #define INTERNAL_CLOSED 1 //1
-
-typedef char opaque_tuple_t; 
 
 typedef struct {
   opaque_tuple_t *data; 
@@ -29,6 +29,7 @@ typedef struct {
   unsigned int size; 
   size_t tuple_size; 
   int closed:1;
+  int in_usage:1; 
   pthread_mutex_t mutex; 
   pthread_cond_t cond; 
 } internal_t; 

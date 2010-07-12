@@ -13,11 +13,15 @@
 /**\file defines.h*/
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
+#define TUPLESPACE_MAXINTERNALS 128  
+#define TUPLESPACE_CLOSED 0
 
-#define TUPLESPACE_MAXINTERNALS 128
 
 #define SYSTEMINFO_MAXTHREADS 128
 
+
+typedef void opaque_tuple_t;
 
 #endif 	    /* !DEFINES_H_ */
