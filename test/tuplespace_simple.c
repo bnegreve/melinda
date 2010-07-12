@@ -7,6 +7,8 @@
 ** Started on  Mon Jul 12 17:32:22 2010 bengreve
 */
 
+// gcc -g -std=c99 tuplespace_simple.c -lpthread ../tuplespace.c ../internal.c 
+
 #include <stdio.h>
 #include "../tuplespace.h"
 #include "../melinda.h"
