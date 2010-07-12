@@ -43,7 +43,10 @@ int main(){
 
   int nb_tuples = 1; 
   tuple_t t; 
-  while(m_internal_get(&internal, &nb_tuples, (opaque_tuple_t*)&t) != INTERNAL_CLOSED){
+  int a; 
+  while((a = m_internal_get(&internal, nb_tuples, (opaque_tuple_t*)&t)) != INTERNAL_CLOSED){
+    if(a==0)
+      continue; 
     printf("%d %d %s\n", t.a, t.b, t.c); 
     free(t.c); 
   }

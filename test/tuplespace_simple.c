@@ -28,6 +28,7 @@ int main(){
   int i[] = {1, 2, 3, 4}; 
   m_tuplespace_put(&ts, i, 4); 
 
+  m_tuplespace_close(&ts); 
   int n = 1; 
   int x; 
   while(m_tuplespace_get(&ts, &x, &n) != TUPLESPACE_CLOSED){

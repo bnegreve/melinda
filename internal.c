@@ -30,7 +30,9 @@ static inline opaque_tuple_t *data_end(internal_t *i) ;
 
 static inline unsigned int dist_to_data_end(internal_t *i); 
 
-
+/** \brief copy data from \i into \tuples*/
+static unsigned int retrieve_tuple(internal_t *i, int nb_tuples, 
+				   opaque_tuple_t *tuples);
 
 void m_internal_init(internal_t *i, size_t tuple_size){
 
@@ -40,7 +42,7 @@ void m_internal_init(internal_t *i, size_t tuple_size){
   i->size = 0; 
   i->begin = 0; 
   i->closed = !INTERNAL_CLOSED; 
-  i->in_usage = 1; 
+  i->in_usage = 0;
   pthread_mutex_init(&i->mutex, NULL); 
   pthread_cond_init(&i->cond, NULL); 
 }
@@ -79,7 +81,7 @@ void m_internal_put(internal_t *i, opaque_tuple_t *tuples, unsigned int nb_tuple
 
 }
 
-int m_internal_get(internal_t *i, unsigned int *nb_tuples, opaque_tuple_t *tuples){
+int m_internal_get(internal_t *i, unsigned int nb_tuples, opaque_tuple_t *tuples){
 
   pthread_mutex_lock(&i->mutex); 
   if(wait_tuple(i) == INTERNAL_CLOSED){
@@ -88,21 +90,25 @@ int m_internal_get(internal_t *i, unsigned int *nb_tuples, opaque_tuple_t *tuple
   }
   assert(i->size > 0);
 
-  *nb_tuples = min(i->size/i->tuple_size, *nb_tuples);
-  size_t output_data_size = *nb_tuples * i->tuple_size; 
-  size_t first_segment_size = dist_to_data_end(i);
-  if(output_data_size <= first_segment_size)
-    memcpy(tuples, i->data+i->begin, output_data_size); 
-  else{
-    memcpy(tuples, i->data+i->begin, first_segment_size); 
-    memcpy(tuples+first_segment_size, i->data, output_data_size-first_segment_size); 
-  }
-  
-  i->begin = (i->begin+output_data_size)%i->data_size; 
-  i->size -= output_data_size; 
+  int nb_out_tuples = retrieve_tuple(i, nb_tuples, tuples);
 
   pthread_mutex_unlock(&i->mutex); 
-  return !INTERNAL_CLOSED;   
+  return nb_out_tuples; 
+}
+
+int m_internal_iget(internal_t *i, unsigned int nb_tuples, opaque_tuple_t *tuples){
+  pthread_mutex_lock(&i->mutex); 
+  if(i->size == 0){
+    if(i->closed)
+      return INTERNAL_CLOSED; 
+    return 0; 
+  }
+
+  int nb_out_tuples = retrieve_tuple(i, nb_tuples, tuples);
+
+  pthread_mutex_unlock(&i->mutex); 
+  return nb_out_tuples; 
+  
 }
 
 void m_internal_close(internal_t *i){
@@ -110,6 +116,11 @@ void m_internal_close(internal_t *i){
   i->closed = INTERNAL_CLOSED; 
   pthread_cond_broadcast(&i->cond); 
   pthread_mutex_unlock(&i->mutex); 
+}
+
+int m_internal_closed(internal_t *i){
+  //TODO SYNC
+  return i->closed; 
 }
 
 static void expand(internal_t *i){
@@ -152,4 +163,28 @@ static inline opaque_tuple_t *data_end(internal_t *i) {
 
 static inline unsigned int dist_to_data_end(internal_t *i){
   return i->data_size - i->begin;
+}
+
+
+
+static unsigned int retrieve_tuple(internal_t *i, int nb_tuples, 
+				   opaque_tuple_t *tuples){
+  int nb_out_tuples = min(i->size/i->tuple_size, nb_tuples);
+  size_t output_data_size = nb_out_tuples * i->tuple_size; 
+  size_t first_segment_size = dist_to_data_end(i);
+  if(output_data_size <= first_segment_size)
+    memcpy(tuples, i->data+i->begin, output_data_size); 
+  else{
+    memcpy(tuples, i->data+i->begin, first_segment_size); 
+    memcpy(tuples+first_segment_size, i->data, output_data_size-first_segment_size); 
+  }
+  
+  i->begin = (i->begin+output_data_size)%i->data_size; 
+  i->size -= output_data_size; 
+  return nb_out_tuples; 
+}
+
+
+int m_internal_empty(internal_t *i){
+  return i->size == 0; 
 }
