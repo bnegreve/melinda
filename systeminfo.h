@@ -10,7 +10,11 @@
 
 #ifndef   	SYSTEMINFO_H_
 #define   	SYSTEMINFO_H_
+<<<<<<< HEAD
 /**\file systeminfo.h*/
+=======
+
+>>>>>>> b254433... Introduced a systeminfo module, added doxygen config file, create a
 
 /** 
  * \brief attribute a unique id between [0..].

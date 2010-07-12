@@ -10,6 +10,7 @@
 
 #ifndef   	DEFINES_H_
 #define   	DEFINES_H_
+<<<<<<< HEAD
 
 /**\file defines.h*/
 #include <assert.h>
@@ -28,5 +29,12 @@
 
 
 typedef void opaque_tuple_t;
+=======
+#include <assert.h>
+
+
+#define SYSTEMINFO_MAX_THREADS 128
+
+>>>>>>> b254433... Introduced a systeminfo module, added doxygen config file, create a
 
 #endif 	    /* !DEFINES_H_ */

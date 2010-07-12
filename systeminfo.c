@@ -14,6 +14,10 @@
 
 typedef struct{
   pthread_mutex_t mutex; 
+<<<<<<< HEAD
+=======
+  pthread_t tids[SYSTEMINFO_MAX_THREADS]; 
+>>>>>>> b254433... Introduced a systeminfo module, added doxygen config file, create a
   int next_tid; 
 }thread_ids_t;
 
