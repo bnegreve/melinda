@@ -10,10 +10,23 @@
 
 #ifndef   	DEFINES_H_
 #define   	DEFINES_H_
+
+/**\file defines.h*/
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define TUPLESPACE_MAXINTERNALS 128  
+#define TUPLESPACE_CLOSED 0
+
+#define INTERNAL_INITIALMAXTUPLE 1024 //not in use
+#define INTERNAL_EXPANDFACTOR 2 //not in use 
+#define INTERNAL_CLOSED -1 //-1
 
 
-#define SYSTEMINFO_MAX_THREADS 128
+#define SYSTEMINFO_MAXTHREADS 128
 
+
+typedef void opaque_tuple_t;
 
 #endif 	    /* !DEFINES_H_ */
