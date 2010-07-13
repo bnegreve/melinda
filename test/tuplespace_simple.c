@@ -23,8 +23,16 @@ int m_retrieve(){
   return 0; 
 }
 
+int member(int *t, int size, int x){
+  for(int i = 0; i < size; i++){
+    if(t[i] == x)
+      return 1; 
+  }
+  return 0; 
+}
 
 int main(){
+  int count = 0; 
   tuplespace_t ts; 
   m_tuplespace_init(&ts, sizeof(tuple_t), 0); 
   int i[] = {1, 2, 3, 4}; 
@@ -35,7 +43,15 @@ int main(){
   int x; 
   while(m_tuplespace_get(&ts, &x, &n) != TUPLESPACE_CLOSED){
     printf("%d\n", x); 
+    count++; 
+    if(!member(i, sizeof(i)/sizeof(int), x)){
+      return EXIT_FAILURE; 
+    }
   }
-  
+
+  if(count != sizeof(i)/sizeof(int))
+    return EXIT_FAILURE; 
+  return EXIT_SUCCESS; 
+
 
 }
