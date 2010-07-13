@@ -9,15 +9,3 @@
 
 #include "melinda.h"
 
-
-typedef struct {
-  internal_t *internals; 
-  unsigned int nb_iternals; 
-
-}tuplespace_t;
-
-void tuplespace_init(tuplespace_t *ts, unsigned int nb_internals){
-  for(int i = 0; i < nb_internals; i++){
-    internal_init(); 
-  }
-}
