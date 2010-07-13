@@ -13,7 +13,4 @@ add_test(tuplespace_simple tuplespace_simple)
 add_test(internal_simple internal_fifo_static_size 1000)
 
 
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                  DEPENDS tuplespace_simple)
-
 
