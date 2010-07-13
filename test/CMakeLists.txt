@@ -8,10 +8,12 @@ link_libraries(pthread melinda)
 
 add_executable(internal_simple internal_simple.c)
 add_executable(tuplespace_simple tuplespace_simple.c)
+add_executable(thread_register thread_register.c)
 
 
 add_test(tuplespace_simple tuplespace_simple)
 add_test(internal_simple internal_simple 1000)
+add_test(thread_register thread_register)
 
 add_custom_target(
   check 
@@ -24,5 +26,6 @@ add_custom_target(
 set_tests_properties ( 
   internal_simple 
   tuplespace_simple
+  thread_register
   PROPERTIES TIMEOUT 1
   )

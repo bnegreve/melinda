@@ -13,15 +13,6 @@
 /**\file systeminfo.h*/
 
 
-/** 
- * \brief attribute a unique id between [0..].
- * Returned ids can be assumed to be consecutives and starting from 0. 
- * @return a unique id 
- */
-int m_register_thread(); 
-int m_thread_id(); 
-
-
 
 int m_core_id(); 
 

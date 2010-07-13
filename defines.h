@@ -24,8 +24,8 @@
 #define INTERNAL_CLOSED -1 //-1
 
 
-#define SYSTEMINFO_MAXTHREADS 128
-
+#define THREAD_MAXTHREADS 128
+#define THREAD_UNREGISTRED -1 //-1
 
 typedef void opaque_tuple_t;
 
