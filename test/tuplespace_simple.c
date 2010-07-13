@@ -10,9 +10,9 @@
 // gcc -g -std=c99 tuplespace_simple.c -lpthread ../tuplespace.c ../internal.c 
 
 #include <stdio.h>
-#include "../tuplespace.h"
-#include "../melinda.h"
-
+#include "tuplespace.h"
+#include "melinda.h"
+#include "thread.h"
 typedef int tuple_t; 
 
 int m_distribute(opaque_tuple_t *tuple){
@@ -31,17 +31,24 @@ int member(int *t, int size, int x){
   return 0; 
 }
 
-int main(){
+int main(int argc, char **argv){
+  /* one argument = autoclose test*/
   int count = 0; 
   tuplespace_t ts; 
-  m_tuplespace_init(&ts, sizeof(tuple_t), 0); 
+  if(argc == 2)
+      m_tuplespace_init(&ts, sizeof(tuple_t), 0, TUPLESPACE_OPTIONAUTOCLOSE); 
+  else
+    m_tuplespace_init(&ts, sizeof(tuple_t), 0, 0); 
   int i[] = {1, 2, 3, 4}; 
-  m_tuplespace_put(&ts, i, 4); 
+  m_tuplespace_put(&ts, i, sizeof(int)); 
+  
+  m_thread_register(); 
 
-  m_tuplespace_close(&ts); 
+  if(argc != 2)
+    m_tuplespace_close(&ts); 
   int n = 1; 
   int x; 
-  while(m_tuplespace_get(&ts, &x, &n) != TUPLESPACE_CLOSED){
+  while(m_tuplespace_get(&ts, 1, &x) != TUPLESPACE_CLOSED){
     printf("%d\n", x); 
     count++; 
     if(!member(i, sizeof(i)/sizeof(int), x)){

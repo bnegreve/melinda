@@ -8,20 +8,27 @@
 */
 
 #include "tuplespace.h"
+#include "thread.h"
 #include "melinda.h" 
 
 static void change_nb_tuples(tuplespace_t *ts, int nb); 
 static int next_internal(tuplespace_t *ts, int current); 
+static void auto_close(tuplespace_t *ts); 
 
 void m_tuplespace_init(tuplespace_t *ts, size_t tuple_size, 
-		       unsigned int nb_internals){
+		       unsigned int nb_internals, int options){
   ts->tuple_size = tuple_size; 
   ts->nb_internals = 0; 
   ts->closed = !TUPLESPACE_CLOSED; 
+  ts->options = options; 
   pthread_mutex_init(&ts->mutex, NULL); 
   pthread_cond_init(&ts->cond, NULL); 
-  memset(ts->binds, 0, TUPLESPACE_MAXINTERNALS*sizeof(int));
+  //  memset(ts->binds, 0, TUPLESPACE_MAXINTERNALS*sizeof(int));
   memset(ts->ids, 0, TUPLESPACE_MAXINTERNALS);
+  for(int i = 0; i < TUPLESPACE_MAXINTERNALS; i++){
+    ts->binds[i] = -1; 
+  }
+  ts->nb_pending_threads = 0; 
 }
 
 
@@ -36,9 +43,9 @@ void m_tuplespace_put(tuplespace_t *ts, opaque_tuple_t *tuples,
 
   int internal_nmbr = m_distribute(tuples); 
   //TODO add unlikely 
-  if(ts->binds[internal_nmbr] == 0){
+  if(ts->binds[internal_nmbr] == -1){
     pthread_mutex_lock(&ts->mutex); 
-    if(ts->binds[internal_nmbr] == 0){
+    if(ts->binds[internal_nmbr] == -1){
       int id;
       for(id = 0; id < TUPLESPACE_MAXINTERNALS; id++){
 	if(ts->ids[id] == 0){
@@ -47,8 +54,8 @@ void m_tuplespace_put(tuplespace_t *ts, opaque_tuple_t *tuples,
 	}
       }
       assert(id < TUPLESPACE_MAXINTERNALS); 
-      m_internal_init(&ts->internals[ts->binds[internal_nmbr]], ts->tuple_size); 
       ts->binds[internal_nmbr] = id; 
+      m_internal_init(&ts->internals[id], ts->tuple_size); 
       ts->nb_internals++; 
     }
     pthread_mutex_unlock(&ts->mutex); 
@@ -57,8 +64,8 @@ void m_tuplespace_put(tuplespace_t *ts, opaque_tuple_t *tuples,
   change_nb_tuples(ts, nb_tuples); 
 }
 
-int m_tuplespace_get(tuplespace_t *ts, opaque_tuple_t *tuples, 
-		     unsigned int *nb_tuples){
+int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples, 
+		     opaque_tuple_t *tuples){
 
   int internal_nmbr = m_retrieve(); 
   int internal_id = ts->binds[internal_nmbr];
@@ -70,7 +77,7 @@ int m_tuplespace_get(tuplespace_t *ts, opaque_tuple_t *tuples,
       internal_t *i = &ts->internals[internal_id];
       if(!m_internal_empty(i)){
 	int nb_out_tuples = 
-	  m_internal_iget(i, *nb_tuples, tuples);
+	  m_internal_iget(i, nb_tuples, tuples);
 	  if(nb_out_tuples){
 	    change_nb_tuples(ts, -(nb_out_tuples));
 	    return nb_out_tuples; 
@@ -86,7 +93,10 @@ int m_tuplespace_get(tuplespace_t *ts, opaque_tuple_t *tuples,
 	pthread_mutex_unlock(&ts->mutex); 
 	return TUPLESPACE_CLOSED; 
       }
-      pthread_cond_wait(&ts->cond, &ts->mutex); 
+      if(ts->options & TUPLESPACE_OPTIONAUTOCLOSE)
+	auto_close(ts); 
+      else
+	pthread_cond_wait(&ts->cond, &ts->mutex); 
     }
     pthread_mutex_unlock(&ts->mutex); 
   }
@@ -136,4 +146,18 @@ void m_tuplespace_close(tuplespace_t *ts){
   ts->closed = TUPLESPACE_CLOSED; 
   pthread_cond_broadcast(&ts->cond); 
   pthread_mutex_unlock(&ts->mutex); 
+}
+
+void auto_close(tuplespace_t *ts){
+  assert(ts->options & TUPLESPACE_OPTIONAUTOCLOSE); 
+  if(++ts->nb_pending_threads == m_thread_nb_registred()){
+    assert(ts->nb_pending_threads <= m_thread_nb_registred()); 
+    assert(ts->nb_tuples == 0);
+    ts->closed = TUPLESPACE_CLOSED;
+    pthread_cond_broadcast(&ts->cond); 
+  }
+  else{
+    pthread_cond_wait(&ts->cond, &ts->mutex); 
+    --ts->nb_pending_threads;
+  }
 }

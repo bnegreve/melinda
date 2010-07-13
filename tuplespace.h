@@ -22,10 +22,12 @@ typedef struct {
   int binds[TUPLESPACE_MAXINTERNALS]; /**< bind arbitrary value > internals */
   char ids[TUPLESPACE_MAXINTERNALS]; /**< available ids (should be a bitmap) */
   unsigned int nb_internals; 
+  int options; 
   int nb_tuples; 
   int closed:1; 
   pthread_mutex_t mutex; 
   pthread_cond_t cond; 
+  unsigned int nb_pending_threads; 
 } tuplespace_t;
 
 /** 
@@ -36,9 +38,10 @@ typedef struct {
  * @param ts The tuplespace to initialize. 
  * @param tuple_size
  * @param nb_internals Number of internals to be initialy created. 
+ * @param options Options (see \defines.h) if NULL, default options are used.
  */
 void m_tuplespace_init(tuplespace_t *ts, size_t tuple_size, 
-		     unsigned int nb_internals); 
+		       unsigned int nb_internals, int options); 
 
 /** 
  * \brief Releases memory used by the tuplespace \ts.
@@ -64,16 +67,14 @@ void m_tuplespace_put(tuplespace_t *ts, opaque_tuple_t *tuples,
  * and fill the \tuples array with them.
  * 
  * @param ts The tuplespace from which tuples are going to be fetched.
+ * @param nb_tuples Maximum number of tuples to retrieve. 
  * @param tuples The array of tuples. 
- * @param nb_tuples Number of tuples cointained in \tuples after the call.
  * 
- * @return TUPLESPACE_CLOSED if \ts is empty and is not going
- * to receive any other tuple. Or TUPLESPACE_NOMATCH if \ts
- * does not cointain any tuple with the default label and is not going
- * to receive any.
+ * @return number of tuples or TUPLESPACE_CLOSED if \ts is empty and is not going
+ * to receive any other tuple. 
  */
-int m_tuplespace_get(tuplespace_t *ts, opaque_tuple_t *tuples, 
-		   unsigned int *nb_tuples); 
+int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples, 
+		     opaque_tuple_t *tuples);
 
 
 /** 
