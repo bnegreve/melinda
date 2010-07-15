@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 2.6)
-add_definitions(-std=c99 -g)
+add_definitions(-std=c99 -g )
 
 include_directories("../")
 link_directories("../")
@@ -16,7 +16,9 @@ add_test(tuplespace_simple tuplespace_simple)
 add_test(tuplespace_simple_autoclose tuplespace_simple x)
 add_test(internal_simple internal_simple 1000)
 add_test(thread_register thread_register)
-add_test(tuplespace_multi tuplespace_multi)
+add_test(tuplespace_multi tuplespace_multi 10)
+add_test(many_run many_run.sh 50 24)
+add_test(valgrind valgrind -q ./tuplespace_multi 10)
 
 add_custom_target(
   check 
@@ -35,4 +37,11 @@ set_tests_properties (
   thread_register
   tuplespace_multi
   PROPERTIES TIMEOUT 2
+  )
+
+
+set_tests_properties ( 
+  many_run
+  valgrind
+  PROPERTIES TIMEOUT 7
   )
