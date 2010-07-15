@@ -16,7 +16,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TUPLESPACE_MAXINTERNALS 128  
+#define TUPLESPACE_MAXINTERNALS 128 /**< maximum number of internal */
+#define TUPLESPACE_MAXINTERNALVALUE 128	/**< mamixum value that can be returned by distribute */
 #define TUPLESPACE_CLOSED 0
 #define TUPLESPACE_OPTIONAUTOCLOSE 1 //1
 #define TUPLESPACE_OPTIONSTARTLOCKED 1<<1 //1<<1 // NOT IMPLEMENTED

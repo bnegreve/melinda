@@ -19,7 +19,7 @@
 typedef struct {
   size_t tuple_size; 
   internal_t internals[TUPLESPACE_MAXINTERNALS];   
-  int binds[TUPLESPACE_MAXINTERNALS]; /**< bind arbitrary value > internals */
+  int binds[TUPLESPACE_MAXINTERNALVALUE]; /**< bind arbitrary value > internals */
   char ids[TUPLESPACE_MAXINTERNALS]; /**< available ids (should be a bitmap) */
   unsigned int nb_internals; 
   int options; 

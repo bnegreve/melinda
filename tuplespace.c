@@ -29,8 +29,8 @@ void m_tuplespace_init(tuplespace_t *ts, size_t tuple_size,
   pthread_mutex_init(&ts->mutex, NULL); 
   pthread_cond_init(&ts->cond, NULL); 
   //  memset(ts->binds, 0, TUPLESPACE_MAXINTERNALS*sizeof(int));
-  memset(ts->ids, 0, TUPLESPACE_MAXINTERNALS);
-  for(int i = 0; i < TUPLESPACE_MAXINTERNALS; i++){
+  memset(ts->ids, 0, TUPLESPACE_MAXINTERNALVALUE);
+  for(int i = 0; i < TUPLESPACE_MAXINTERNALVALUE; i++){
     ts->binds[i] = -1; 
   }
   ts->nb_pending_threads = 0; 
@@ -47,6 +47,8 @@ void m_tuplespace_put(tuplespace_t *ts, opaque_tuple_t *tuples,
   
 
   int internal_nmbr = m_distribute(tuples); 
+  assert(internal_nmbr < TUPLESPACE_MAXINTERNALVALUE); 
+
   //TODO add unlikely 
   if(ts->binds[internal_nmbr] == -1){
     pthread_mutex_lock(&ts->mutex); 
