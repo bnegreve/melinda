@@ -8,3 +8,4 @@ add_subdirectory(test)
 
 
 add_custom_target(cleane rm -rf *~)
+add_custom_target(doc doxygen doc)

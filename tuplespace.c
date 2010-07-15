@@ -75,10 +75,9 @@ void m_tuplespace_put(tuplespace_t *ts, opaque_tuple_t *tuples,
 int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples, 
 		     opaque_tuple_t *tuples){
 
-  int internal_nmbr = m_retrieve(); 
-  int internal_id = ts->binds[internal_nmbr];
-
   for(;;){
+    int internal_nmbr = m_retrieve(); 
+    int internal_id = ts->binds[internal_nmbr];
     /* while there are some tuples */
     while(__sync_fetch_and_or(&ts->nb_tuples, 0)){
       internal_t *i = &ts->internals[internal_id];
@@ -90,12 +89,13 @@ int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples,
 	    return nb_out_tuples; 
 	  }
       }
-      internal_id = next_internal(ts, internal_id);
+      if((internal_id = next_internal(ts, internal_id)) == -1)
+	break; 
     }
 
     /* if the tuplespace seems to be empty */ 
     pthread_mutex_lock(&ts->mutex); 
-    while(ts->nb_tuples == 0){
+    while(ts->nb_tuples == 0 || ts->nb_internals == 0){
       //printf("%d enters locked mode\n", m_thread_id()); 
       if(m_tuplespace_closed(ts)){
 	pthread_mutex_unlock(&ts->mutex); 
@@ -136,7 +136,6 @@ static void change_nb_tuples(tuplespace_t *ts, int nb){
 }
 
 static int next_internal(tuplespace_t *ts, int current){
- 
   for(;;){
     int nb_internals = ts->nb_internals; 
     for(int i = current+1, count = 0; 
@@ -145,8 +144,9 @@ static int next_internal(tuplespace_t *ts, int current){
       if(ts->ids[i])
 	return i; 
     }
+    return -1; 
     assert(0);     //TODO this should be reached until removal of ts is implemented 
-    WBR; //nb_internal must be fetched from the memory
+    //    WBR; //nb_internal must be fetched from the memory
   }
 }
 
