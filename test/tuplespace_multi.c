@@ -67,6 +67,7 @@ int main(int argc, char **argv){
   pthread_t tids[MAX_NB_THREADS]; 
   for(int i = 0; i < nb_threads; i++)
     pthread_create(&tids[i], NULL, thread_func, (void*)&ts); 
+  m_tuplespace_close(&ts); 
 
   for(int i = 0; i < nb_threads; i++)
     pthread_join(tids[i], NULL); 

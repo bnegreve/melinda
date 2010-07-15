@@ -7,6 +7,7 @@
 ** Started on  Mon Jul 12 12:00:51 2010 bengreve
 */
 
+#include <stdio.h>
 #include "tuplespace.h"
 #include "thread.h"
 #include "melinda.h" 
@@ -65,8 +66,8 @@ void m_tuplespace_put(tuplespace_t *ts, opaque_tuple_t *tuples,
     }
     pthread_mutex_unlock(&ts->mutex); 
   }
-  m_internal_put(&ts->internals[ts->binds[internal_nmbr]], tuples, nb_tuples);
   change_nb_tuples(ts, nb_tuples); 
+  m_internal_put(&ts->internals[ts->binds[internal_nmbr]], tuples, nb_tuples);
 }
 
 int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples, 
@@ -76,14 +77,13 @@ int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples,
   int internal_id = ts->binds[internal_nmbr];
 
   for(;;){
-    //TODO correct this
     /* while there are some tuples */
     while(__sync_fetch_and_or(&ts->nb_tuples, 0)){
       internal_t *i = &ts->internals[internal_id];
-      if(!m_internal_empty(i)){
+      if(!m_internal_empty(i)){	
 	int nb_out_tuples = 
 	  m_internal_iget(i, nb_tuples, tuples);
-	  if(nb_out_tuples){
+	  if(nb_out_tuples > 0){
 	    change_nb_tuples(ts, -(nb_out_tuples));
 	    return nb_out_tuples; 
 	  }
@@ -94,6 +94,7 @@ int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples,
     /* if the tuplespace seems to be empty */ 
     pthread_mutex_lock(&ts->mutex); 
     while(ts->nb_tuples == 0){
+      //printf("%d enters locked mode\n", m_thread_id()); 
       if(m_tuplespace_closed(ts)){
 	pthread_mutex_unlock(&ts->mutex); 
 	return TUPLESPACE_CLOSED; 
@@ -125,6 +126,7 @@ int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples,
 static void change_nb_tuples(tuplespace_t *ts, int nb){
   pthread_mutex_lock(&ts->mutex); 
   ts->nb_tuples+=nb; 
+  //  printf("%d change nb_tupes to %d (%d)\n", m_thread_id(), ts->nb_tuples, nb);
   assert(ts->nb_tuples >= 0); 
   if(ts->nb_tuples == 0)
     pthread_cond_broadcast(&ts->cond); 
@@ -132,6 +134,7 @@ static void change_nb_tuples(tuplespace_t *ts, int nb){
 }
 
 static int next_internal(tuplespace_t *ts, int current){
+  //TODO this is NOT efficient !
   for(int i = current+1, count = 0; 
       count < TUPLESPACE_MAXINTERNALS; count++, ++i){
     i=(i%TUPLESPACE_MAXINTERNALS); 

@@ -74,7 +74,7 @@ void m_internal_put(internal_t *i, opaque_tuple_t *tuples, unsigned int nb_tuple
     memcpy(i->data, tuples+first_segment_size, input_data_size-first_segment_size);
   }
   
-  i->size+= input_data_size; 
+  i->size += input_data_size; 
 
   pthread_cond_signal(&i->cond); 
   pthread_mutex_unlock(&i->mutex); 
@@ -99,8 +99,11 @@ int m_internal_get(internal_t *i, unsigned int nb_tuples, opaque_tuple_t *tuples
 int m_internal_iget(internal_t *i, unsigned int nb_tuples, opaque_tuple_t *tuples){
   pthread_mutex_lock(&i->mutex); 
   if(i->size == 0){
-    if(i->closed)
+    if(i->closed){
+      pthread_mutex_unlock(&i->mutex); 
       return INTERNAL_CLOSED; 
+    }
+    pthread_mutex_unlock(&i->mutex); 
     return 0; 
   }
 
@@ -181,6 +184,7 @@ static unsigned int retrieve_tuple(internal_t *i, int nb_tuples,
   
   i->begin = (i->begin+output_data_size)%i->data_size; 
   i->size -= output_data_size; 
+  assert(size>=0);
   return nb_out_tuples; 
 }
 
