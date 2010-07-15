@@ -17,7 +17,7 @@ add_test(tuplespace_simple_autoclose tuplespace_simple x)
 add_test(internal_simple internal_simple 1000)
 add_test(thread_register thread_register)
 add_test(tuplespace_multi tuplespace_multi 10)
-add_test(many_run many_run.sh 50 24)
+add_test(many_run many_run.sh 50 16)
 add_test(valgrind valgrind -q ./tuplespace_multi 10)
 
 add_custom_target(

@@ -134,14 +134,18 @@ static void change_nb_tuples(tuplespace_t *ts, int nb){
 }
 
 static int next_internal(tuplespace_t *ts, int current){
-  //TODO this is NOT efficient !
-  for(int i = current+1, count = 0; 
-      count < TUPLESPACE_MAXINTERNALS; count++, ++i){
-    i=(i%TUPLESPACE_MAXINTERNALS); 
-    if(ts->ids[i])
-      return i; 
+ 
+  for(;;){
+    int nb_internals = ts->nb_internals; 
+    for(int i = current+1, count = 0; 
+	count < ts->nb_internals; ++i){
+      i=(i%nb_internals); 
+      if(ts->ids[i])
+	return i; 
+    }
+    assert(0);     //TODO this should be reached until removal of ts is implemented 
+    WBR; //nb_internal must be fetched from the memory
   }
-  assert(0); 
 }
 
 int m_tuplespace_closed(tuplespace_t *ts){
