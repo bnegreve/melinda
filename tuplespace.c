@@ -48,7 +48,7 @@ void m_tuplespace_put(tuplespace_t *ts, opaque_tuple_t *tuples,
 
   int internal_nmbr = m_distribute(tuples); 
   assert(internal_nmbr < TUPLESPACE_MAXINTERNALVALUE); 
-
+  assert(internal_nmbr >= 0); 
   //TODO add unlikely 
   if(ts->binds[internal_nmbr] == -1){
     pthread_mutex_lock(&ts->mutex); 
@@ -95,13 +95,13 @@ int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples,
 
     /* if the tuplespace seems to be empty */ 
     pthread_mutex_lock(&ts->mutex); 
-    while(ts->nb_tuples == 0 || ts->nb_internals == 0){
+    while(ts->nb_tuples == 0){
       //printf("%d enters locked mode\n", m_thread_id()); 
       if(m_tuplespace_closed(ts)){
 	pthread_mutex_unlock(&ts->mutex); 
 	return TUPLESPACE_CLOSED; 
       }
-      if(ts->options & TUPLESPACE_OPTIONAUTOCLOSE)
+      if(TUPLESPACE_OPTIONAUTOCLOSE & ts->options)
 	auto_close(ts); 
       else
 	pthread_cond_wait(&ts->cond, &ts->mutex); 
