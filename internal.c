@@ -65,11 +65,12 @@ void m_internal_put(internal_t *i, opaque_tuple_t *tuples, unsigned int nb_tuple
   assert(i->data_size >= i->size+nb_tuples*i->tuple_size); 
 
   /* Check if there is enough contigus room for all the given tuples*/
-  int first_segment_size = dist_to_data_end(i)-i->size; 
+  int first_segment_size = dist_to_data_end(i); 
   int input_data_size = nb_tuples * i->tuple_size; 
   if(first_segment_size >= input_data_size)
     memcpy(i->data+i->begin+i->size, tuples, input_data_size);
   else{
+    assert(i->begin+i->size+first_segment_size <= i->data_size); 
     memcpy(i->data+i->begin+i->size, tuples, first_segment_size);
     memcpy(i->data, tuples+first_segment_size, input_data_size-first_segment_size);
   }
@@ -165,7 +166,7 @@ static inline opaque_tuple_t *data_end(internal_t *i) {
 }
 
 static inline unsigned int dist_to_data_end(internal_t *i){
-  return i->data_size - i->begin;
+  return i->data_size - ((i->begin+i->size)%i->data_size);
 }
 
 
