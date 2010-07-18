@@ -35,8 +35,10 @@ int main(int argc, char **argv){
   /* one argument = autoclose test*/
   int count = 0; 
   tuplespace_t ts; 
-  if(argc == 2)
+  if(argc == 2){
       m_tuplespace_init(&ts, sizeof(tuple_t), 0, TUPLESPACE_OPTIONAUTOCLOSE); 
+      m_tuplespace_close_at(&ts, 1);
+  }
   else
     m_tuplespace_init(&ts, sizeof(tuple_t), 0, 0); 
   int i[] = {1, 2, 3, 4}; 
