@@ -33,6 +33,7 @@ void m_tuplespace_init(tuplespace_t *ts, size_t tuple_size,
   for(int i = 0; i < TUPLESPACE_MAXINTERNALVALUE; i++){
     ts->binds[i] = -1; 
   }
+  ts->nb_expected_threads = -1;
   ts->nb_pending_threads = 0; 
 }
 
@@ -150,6 +151,7 @@ static int next_internal(tuplespace_t *ts, int current){
   }
 }
 
+
 int m_tuplespace_closed(tuplespace_t *ts){
   return ts->closed == TUPLESPACE_CLOSED; 
 }
@@ -164,8 +166,8 @@ void m_tuplespace_close(tuplespace_t *ts){
 
 void auto_close(tuplespace_t *ts){
   assert(ts->options & TUPLESPACE_OPTIONAUTOCLOSE); 
-  if(++ts->nb_pending_threads == m_thread_nb_registred()){
-    assert(ts->nb_pending_threads <= m_thread_nb_registred()); 
+  if(++ts->nb_pending_threads == ts->nb_expected_threads){
+    assert(ts->nb_pending_threads <= ts->nb_expected_threads); 
     assert(ts->nb_tuples == 0);
     ts->closed = TUPLESPACE_CLOSED;
     pthread_cond_broadcast(&ts->cond); 
@@ -174,4 +176,13 @@ void auto_close(tuplespace_t *ts){
     pthread_cond_wait(&ts->cond, &ts->mutex); 
     --ts->nb_pending_threads;
   }
+}
+
+void  m_tuplespace_close_at(tuplespace_t *ts, unsigned int nb_threads){
+  assert(ts->options&TUPLESPACE_OPTIONAUTOCLOSE); 
+  pthread_mutex_lock(&ts->mutex); 
+  ts->nb_expected_threads; 
+  ts->nb_expected_threads = nb_threads;  
+  pthread_cond_signal(&ts->cond); 
+  pthread_mutex_unlock(&ts->mutex); 
 }
