@@ -21,6 +21,9 @@ static void auto_close(tuplespace_t *ts);
 
 void m_tuplespace_init(tuplespace_t *ts, size_t tuple_size, 
 		       unsigned int nb_internals, int options){
+  #ifndef NDEBUG
+  fprintf(stderr, "MELINDA DEBUG\n"); 
+  #endif
   ts->tuple_size = tuple_size; 
   ts->nb_tuples = 0; 
   ts->nb_internals = 0; 
@@ -63,7 +66,7 @@ void m_tuplespace_put(tuplespace_t *ts, opaque_tuple_t *tuples,
       }
       assert(id < TUPLESPACE_MAXINTERNALS); 
       m_internal_init(&ts->internals[id], ts->tuple_size); 
-      //      WBR; //prevent instruction reordering 
+      //WBR; //prevent instruction reordering 
       ts->binds[internal_nmbr] = id; 
       ts->nb_internals++; 
     }
