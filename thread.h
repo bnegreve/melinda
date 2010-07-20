@@ -34,6 +34,11 @@ int m_thread_id();
  */
 int m_thread_nb_registred(); 
 
-
+/** 
+ * \brief Returns the socket on which the current thread is running. 
+ * 
+ * @return Number of socket or -1 if unavailable.
+ */
+int m_get_socket_id();
 
 #endif 	    /* !THREAD_H_ */

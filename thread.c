@@ -47,3 +47,13 @@ int m_thread_nb_registred(){
   return tmp; 
 }
 
+
+/** 
+ * \brief Returns the socket on which the current thread is running. 
+ * 
+ * @return Number of socket or -1 if unavailable.
+ */
+int m_get_socket_id(){
+  int socket_depth = hwloc_get_type_depth(topology, HWLOC_OBJ_SOCKET);
+  assert(socket_depth != -1); 
+}
