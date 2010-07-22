@@ -17,7 +17,7 @@
 
 static void change_nb_tuples(tuplespace_t *ts, int nb); 
 static int next_internal(tuplespace_t *ts, int current); 
-static void auto_close(tuplespace_t *ts); 
+static int auto_close(tuplespace_t *ts); 
 
 void m_tuplespace_init(tuplespace_t *ts, size_t tuple_size, 
 		       unsigned int nb_internals, int options){
@@ -54,89 +54,120 @@ void m_tuplespace_put(tuplespace_t *ts, opaque_tuple_t *tuples,
   assert(internal_nmbr < TUPLESPACE_MAXINTERNALVALUE); 
   assert(internal_nmbr >= 0); 
   //TODO add unlikely 
+  int id;
+  pthread_mutex_lock(&ts->mutex); 
   if(ts->binds[internal_nmbr] == -1){
-    pthread_mutex_lock(&ts->mutex); 
-    if(ts->binds[internal_nmbr] == -1){
-      int id;
-      for(id = 0; id < TUPLESPACE_MAXINTERNALS; id++){
-	if(ts->ids[id] == 0){
-	  ts->ids[id]=1; 
-	  break; 
-	}
+
+    for(id = 0; id < TUPLESPACE_MAXINTERNALS; id++){
+      if(ts->ids[id] == 0){
+	assert(id < TUPLESPACE_MAXINTERNALS); 
+	m_internal_init(&ts->internals[id], ts->tuple_size); 
+	ts->ids[id]=1; 
+	break; 
       }
-      assert(id < TUPLESPACE_MAXINTERNALS); 
-      m_internal_init(&ts->internals[id], ts->tuple_size); 
-      //WBR; //prevent instruction reordering 
-      ts->binds[internal_nmbr] = id; 
-      ts->nb_internals++; 
     }
-    pthread_mutex_unlock(&ts->mutex); 
+    //WBR; //prevent instruction reordering 
+    ts->binds[internal_nmbr] = id; 
+    ts->nb_internals++; 
+    
+    change_nb_tuples(ts, nb_tuples); 
+    assert(!m_tuplespace_closed(ts));
+    m_internal_put(&ts->internals[id], tuples, nb_tuples);
   }
-  change_nb_tuples(ts, nb_tuples); 
-  m_internal_put(&ts->internals[ts->binds[internal_nmbr]], tuples, nb_tuples);
+  else{
+    assert(ts->binds[internal_nmbr] != -1);
+    change_nb_tuples(ts, nb_tuples); 
+    m_internal_put(&ts->internals[ts->binds[internal_nmbr]], tuples, nb_tuples);
+  }
+  pthread_mutex_unlock(&ts->mutex);
 }
 
 int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples, 
 		     opaque_tuple_t *tuples){
 
+#ifndef SMART_GET
+
+  int internal_nmbr = m_retrieve(); 
+  pthread_mutex_lock(&ts->mutex);
   for(;;){
-    int internal_nmbr = m_retrieve(); 
     int internal_id = ts->binds[internal_nmbr];
-    /* while there are some tuples */
-    while(__sync_fetch_and_or(&ts->nb_tuples, 0)){
+    int nb_internals = ts->nb_internals; 
+    for(int count = 0; count < nb_internals && ts->nb_tuples; count++){
+      assert(internal_id != -1); 
       internal_t *i = &ts->internals[internal_id];
       if(!m_internal_empty(i)){	
 	int nb_out_tuples = 
 	  m_internal_iget(i, nb_tuples, tuples);
-	  if(nb_out_tuples > 0){
-	    change_nb_tuples(ts, -(nb_out_tuples));
-	    return nb_out_tuples; 
-	  }
+	if(nb_out_tuples > 0){
+	  change_nb_tuples(ts, -(nb_out_tuples));
+	  pthread_mutex_unlock(&ts->mutex); 
+	  return nb_out_tuples; 
+	}
       }
-      if((internal_id = next_internal(ts, internal_id)) == -1)
-	break; 
+      internal_id = next_internal(ts, internal_id);
     }
-
-    /* if the tuplespace seems to be empty */ 
-    pthread_mutex_lock(&ts->mutex); 
-    while(ts->nb_tuples == 0){
-      //printf("%d enters locked mode\n", m_thread_id()); 
-      if(m_tuplespace_closed(ts)){
+    /* Reach if no tuples are available nowhere */
+    if(m_tuplespace_closed(ts)){
+      pthread_mutex_unlock(&ts->mutex); 
+      return TUPLESPACE_CLOSED; 
+    }
+    if(TUPLESPACE_OPTIONAUTOCLOSE & ts->options){
+      if(auto_close(ts) == TUPLESPACE_CLOSED){
 	pthread_mutex_unlock(&ts->mutex); 
-	return TUPLESPACE_CLOSED; 
+	return TUPLESPACE_CLOSED;
       }
-      if(TUPLESPACE_OPTIONAUTOCLOSE & ts->options)
-	auto_close(ts); 
-      else
-	pthread_cond_wait(&ts->cond, &ts->mutex); 
     }
-    pthread_mutex_unlock(&ts->mutex); 
+    else
+      pthread_cond_wait(&ts->cond, &ts->mutex); 
+  }
+#else
+for(;;){
+  int internal_nmbr = m_retrieve(); 
+  int internal_id = ts->binds[internal_nmbr];
+
+  /* while there are some tuples */
+  while(__sync_fetch_and_or(&ts->nb_tuples, 0)){
+    internal_t *i = &ts->internals[internal_id];
+    assert(internal_id != -1); 
+    if(!m_internal_empty(i)){	
+      int nb_out_tuples = 
+	m_internal_iget(i, nb_tuples, tuples);
+      if(nb_out_tuples > 0){
+	pthread_mutex_lock(&ts->mutex); 
+	change_nb_tuples(ts, -(nb_out_tuples));
+	pthread_mutex_unlock(&ts->mutex); 
+	return nb_out_tuples; 
+      }
+    }
+    if((internal_id = next_internal(ts, internal_id)) == -1)
+      break; 
   }
 
-  /* /\* There are (very probably) some tuples somewhere *\/ */
-  /* for(int i = 0; i < TUPLESPACE_MAXINTERNALS; i++){ */
-  /*   internal_t *i;  */
-  /*   if(ts->binds[i] != 0){ */
-  /*     i = ts->internals[ts->binds[i]]; */
-  /*     if(!m_internal_empty(i)){ */
-  /* 	int nb_out_tuples = m_internal_iget(i, nb_tuples, tuples);  */
-  /* 	ts->nb_tuples -= nb_out_tuples;  */
-  /* 	pthread_mutex_unlock(&ts->mutex);  */
-  /* 	return nb_out_tuples; */
-  /*     } */
-  /*   } */
-  /* }   */
-  /* pthread_mutex_unlock(&ts->mutex);  */
+  /* Reached if there are no avaible tuples or internals */
+
+  pthread_mutex_lock(&ts->mutex); 
+  while(ts->nb_tuples == 0){
+    //printf("%d enters locked mode\n", m_thread_id()); 
+    if(m_tuplespace_closed(ts)){
+      pthread_mutex_unlock(&ts->mutex); 
+      return TUPLESPACE_CLOSED; 
+    }
+    if(TUPLESPACE_OPTIONAUTOCLOSE & ts->options)
+      auto_close(ts); 
+    else
+      pthread_cond_wait(&ts->cond, &ts->mutex); 
+  }
+  pthread_mutex_unlock(&ts->mutex); 
+ }
+#endif //SMART_GET
 }
 
 static void change_nb_tuples(tuplespace_t *ts, int nb){
-  pthread_mutex_lock(&ts->mutex); 
   ts->nb_tuples+=nb; 
   //  printf("%d change nb_tupes to %d (%d)\n", m_thread_id(), ts->nb_tuples, nb);
   assert(ts->nb_tuples >= 0); 
   if(ts->nb_tuples == 0)
     pthread_cond_broadcast(&ts->cond); 
-  pthread_mutex_unlock(&ts->mutex); 
 }
 
 static int next_internal(tuplespace_t *ts, int current){
@@ -167,17 +198,19 @@ void m_tuplespace_close(tuplespace_t *ts){
   pthread_mutex_unlock(&ts->mutex); 
 }
 
-void auto_close(tuplespace_t *ts){
+int auto_close(tuplespace_t *ts){
   assert(ts->options & TUPLESPACE_OPTIONAUTOCLOSE); 
   if(++ts->nb_pending_threads == ts->nb_expected_threads){
     assert(ts->nb_pending_threads <= ts->nb_expected_threads); 
     assert(ts->nb_tuples == 0);
     ts->closed = TUPLESPACE_CLOSED;
     pthread_cond_broadcast(&ts->cond); 
+    return TUPLESPACE_CLOSED; 
   }
   else{
     pthread_cond_wait(&ts->cond, &ts->mutex); 
     --ts->nb_pending_threads;
+    return !TUPLESPACE_CLOSED; 
   }
 }
 
