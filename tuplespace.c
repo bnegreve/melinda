@@ -92,8 +92,11 @@ int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples,
   for(;;){
     int internal_id = ts->binds[internal_nmbr];
     int nb_internals = ts->nb_internals; 
+
+    if(internal_id == -1)
+      internal_id = next_internal(ts, internal_id);
+
     for(int count = 0; count < nb_internals && ts->nb_tuples; count++){
-      assert(internal_id != -1); 
       internal_t *i = &ts->internals[internal_id];
       if(!m_internal_empty(i)){	
 	int nb_out_tuples = 
@@ -103,7 +106,7 @@ int m_tuplespace_get(tuplespace_t *ts, unsigned int nb_tuples,
 	  pthread_mutex_unlock(&ts->mutex); 
 	  return nb_out_tuples; 
 	}
-      }
+      }      
       internal_id = next_internal(ts, internal_id);
     }
     /* Reach if no tuples are available nowhere */
