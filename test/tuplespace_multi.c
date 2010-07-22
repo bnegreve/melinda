@@ -36,13 +36,14 @@ int member(int *t, int size, int x){
 void *thread_func(void *ts){
   m_thread_register(); 
   int me = m_thread_id(); 
-  m_tuplespace_put((tuplespace_t*)ts, (opaque_tuple_t*)&me, 1); 
-
+  m_tuplespace_put((tuplespace_t*)ts, (opaque_tuple_t*)&me, 1);
+   printf("put %d\n", me);
   int x, n = 1; 
 
   // if((int)(rand()/RAND_MAX*20) != 1){
     while(m_tuplespace_get((tuplespace_t*)ts, 1, &x) != TUPLESPACE_CLOSED){
       ids[x] = 1; 
+      printf("put %d got %d\n", me, x);
     }
     //  }
 }
@@ -67,7 +68,7 @@ int main(int argc, char **argv){
   pthread_t tids[MAX_NB_THREADS]; 
   for(int i = 0; i < nb_threads; i++)
     pthread_create(&tids[i], NULL, thread_func, (void*)&ts); 
-  m_tuplespace_close(&ts); 
+  m_tuplespace_close_at(&ts, nb_threads); 
 
   for(int i = 0; i < nb_threads; i++)
     pthread_join(tids[i], NULL); 
