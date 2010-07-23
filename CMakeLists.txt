@@ -7,6 +7,7 @@ set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
 project(melinda)
 add_library(melinda STATIC melinda.c tuplespace.c internal.c systeminfo.c thread.c)
 
+
 enable_testing()
 add_subdirectory(test)
 
