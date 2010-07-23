@@ -1,11 +1,13 @@
 /*
-** thread.h
+** PLCM/Melinda
+** (c) Benjamin Negrevergne, 2010
+** Original LCM algorithm from Takaki Uno and Hiroki Arimura.
+**
+** The program was design and implemented in colaboration with
+** Alexandre Termier and Jean-François Méhaut.
 ** 
-** Made by bengreve
-** Login   <bengreve@confiance.imag.fr>
-** 
-** Started on  Tue Jul 13 16:10:36 2010 bengreve
-** Last update Tue Jul 13 16:10:36 2010 bengreve
+** See the README file for installation, usage, and details.
+** See the LICENSE file for licensing.
 */
 
 #ifndef   	THREAD_H_

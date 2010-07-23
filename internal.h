@@ -1,11 +1,13 @@
 /*
-** internal.h
+** PLCM/Melinda
+** (c) Benjamin Negrevergne, 2010
+** Original LCM algorithm from Takaki Uno and Hiroki Arimura.
+**
+** The program was design and implemented in colaboration with
+** Alexandre Termier and Jean-François Méhaut.
 ** 
-** Made by bengreve
-** Login   <bengreve@confiance.imag.fr>
-** 
-** Started on  Thu Jul  8 14:55:42 2010 bengreve
-** Last update Thu Jul  8 14:55:42 2010 bengreve
+** See the README file for installation, usage, and details.
+** See the LICENSE file for licensing.
 */
 
 #ifndef   	INTERNAL_H_
