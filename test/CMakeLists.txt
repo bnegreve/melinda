@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 add_definitions(-std=c99 -g )
-cmake_policy(SET CMP0015 NEW)
+#cmake_policy(SET CMP0015 NEW)
 include_directories("../")
 link_directories("../")
 link_libraries(pthread melinda)
