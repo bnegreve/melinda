@@ -172,7 +172,7 @@ static void change_nb_tuples(tuplespace_t *ts, int nb){
   ts->nb_tuples+=nb; 
   //  printf("%d change nb_tupes to %d (%d)\n", m_thread_id(), ts->nb_tuples, nb);
   assert(ts->nb_tuples >= 0); 
-  if(ts->nb_tuples == 0)
+  if(nb > 0 || ts->nb_tuples == 0)
     pthread_cond_broadcast(&ts->cond); 
 }
 
