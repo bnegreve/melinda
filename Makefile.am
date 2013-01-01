@@ -7,6 +7,8 @@ lib_LIBRARIES = libmelinda.a
 
 libmelinda_a_CPPFLAGS = -DNDEBUG -O3 -std=c99
 
-libmelinda_a_SOURCES = melinda.c tuplespace.c internal.c thread.c
+libmelinda_a_SOURCES = melinda.c tuplespace.c internal.c thread.c\
+	  tuplespace.h internal.h thread.h melinda.h defines.h
+
 
 
