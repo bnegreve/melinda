@@ -18,4 +18,7 @@ esac],
 [debug=false])
 AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 
+m4_pattern_allow([AM_PROG_AR])
+AM_PROG_AR
+
 AC_OUTPUT
