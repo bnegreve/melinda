@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "internal.h"
 
 #define min(a,b)(a<=b?a:b)
@@ -66,7 +67,13 @@ void m_internal_put(internal_t *i, opaque_tuple_t *tuples, unsigned int nb_tuple
   /* } */
 
   /* check wether there is enough room */
-  assert(i->data_size >= i->size+nb_tuples*i->tuple_size); 
+  if(!(i->data_size >= i->size+nb_tuples*i->tuple_size)){
+    fprintf(stderr, "Melinda error: \n\
+cannot store more than %d tuples per internal, reduce the number of \
+tuples or change the value of INTERNAL_INITIALMAXTUPLE in \
+melinda/defines.h.\n",  INTERNAL_INITIALMAXTUPLE);
+    exit(1); 
+  }
 
   /* Check if there is enough contigus room for all the given tuples*/
   int first_segment_size = dist_to_data_end(i); 
