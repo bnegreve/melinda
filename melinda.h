@@ -1,10 +1,7 @@
 /*
-** PLCM/Melinda
-** (c) Benjamin Negrevergne, 2010
-** Original LCM algorithm from Takaki Uno and Hiroki Arimura.
+** This is Melinda.
+** Copyright 2009, 2010 Grenoble University.
 **
-** The program was design and implemented in colaboration with
-** Alexandre Termier and Jean-François Méhaut.
 ** 
 ** See the README file for installation, usage, and details.
 ** See the LICENSE file for licensing.
