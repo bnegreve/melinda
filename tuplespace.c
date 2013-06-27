@@ -220,7 +220,6 @@ int auto_close(tuplespace_t *ts){
 void  m_tuplespace_close_at(tuplespace_t *ts, unsigned int nb_threads){
   assert(ts->options&TUPLESPACE_OPTIONAUTOCLOSE); 
   pthread_mutex_lock(&ts->mutex); 
-  ts->nb_expected_threads; 
   ts->nb_expected_threads = nb_threads;  
   pthread_cond_signal(&ts->cond); 
   pthread_mutex_unlock(&ts->mutex); 
